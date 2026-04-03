@@ -2,15 +2,43 @@ package com.nowcoder.community.entity;
 
 import java.util.Date;
 
+/**
+ * @author 19599
+ */
 public class Comment {
-
+    /**
+     * 帖子id
+     */
     private int id;
+    /**
+     * 用户id
+     */
     private int userId;
+    /**
+     * 评论类型
+     * 1 帖子的评论
+     * 2 评论的回复
+     */
     private int entityType;
+    /**
+     * 对应帖子id
+     */
     private int entityId;
+    /**
+     * 目标用户id
+     */
     private int targetId;
+    /**
+     * 评论内容
+     */
     private String content;
+    /**
+     * 评论状态
+     */
     private int status;
+    /**
+     * 创建时间
+     */
     private Date createTime;
 
     public int getId() {

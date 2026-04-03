@@ -8,18 +8,26 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.SessionCallback;
 import org.springframework.stereotype.Service;
 
+/**
+ * @author 19599
+ */
 @Service
 public class LikeService {
 
     @Autowired
-    private RedisTemplate redisTemplate;
+    private RedisTemplate<String, Object> redisTemplate;
 
     // 点赞
     public void like(int userId, int entityType, int entityId, int entityUserId) {
         redisTemplate.execute(new SessionCallback() {
             @Override
             public Object execute(RedisOperations operations) throws DataAccessException {
+                // 某个类型的某个实体是否收到了该用户的点赞
+                // like:entity:entityType:entityId -> set(userId)
                 String entityLikeKey = RedisKeyUtil.getEntityLikeKey(entityType, entityId);
+
+                // 某个用户收到的赞的个数
+                // like:user:userId -> int
                 String userLikeKey = RedisKeyUtil.getUserLikeKey(entityUserId);
 
                 boolean isMember = operations.opsForSet().isMember(entityLikeKey, userId);

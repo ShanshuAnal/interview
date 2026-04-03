@@ -2,6 +2,9 @@ package com.nowcoder.community.entity;
 
 import java.util.Date;
 
+/**
+ * @author 19599
+ */
 public class LoginTicket {
 
     private int id;

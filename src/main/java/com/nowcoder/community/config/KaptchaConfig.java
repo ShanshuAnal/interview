@@ -8,6 +8,10 @@ import org.springframework.context.annotation.Configuration;
 
 import java.util.Properties;
 
+/**
+ * @author 19599
+ * @Description: 验证码
+ */
 @Configuration
 public class KaptchaConfig {
 

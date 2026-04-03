@@ -11,6 +11,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.lang.reflect.Method;
 
+/**
+ * @author 19599
+ * @Description: 登录状态拦截器
+ */
 @Component
 public class LoginRequiredInterceptor implements HandlerInterceptor {
 

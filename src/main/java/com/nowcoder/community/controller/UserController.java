@@ -1,5 +1,7 @@
 package com.nowcoder.community.controller;
 
+import com.aliyun.oss.OSS;
+import com.aliyun.oss.OSSClientBuilder;
 import com.nowcoder.community.annotation.LoginRequired;
 import com.nowcoder.community.entity.User;
 import com.nowcoder.community.service.FollowService;
@@ -9,22 +11,22 @@ import com.nowcoder.community.util.CommunityConstant;
 import com.nowcoder.community.util.CommunityUtil;
 import com.nowcoder.community.util.HostHolder;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.auth.AUTH;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
 
 @Controller
 @RequestMapping("/user")
@@ -53,14 +55,90 @@ public class UserController implements CommunityConstant {
     @Autowired
     private FollowService followService;
 
+    //@Autowired
+    //private ThreadPoolTaskScheduler taskScheduler;
+
+    @Value("${aliyun.oss.endpoint}")
+    private String endpoint;
+
+    @Value("${aliyun.oss.accessKeyId}")
+    private String accessKeyId;
+
+    @Value("${aliyun.oss.accessKeySecret}")
+    private String accessKeySecret;
+
+    @Value("${aliyun.oss.buckets.headerBucket}")
+    private String headerBucket;
+
     @LoginRequired
     @RequestMapping(path = "/setting", method = RequestMethod.GET)
     public String getSettingPage() {
         return "/site/setting";
     }
 
+    /**
+     * 将头像上传到阿里云oss服务器
+     *
+     * @param headerImage 头像图片文件
+     * @param model
+     * @return
+     */
     @LoginRequired
     @RequestMapping(path = "/upload", method = RequestMethod.POST)
+    public String uploadHeaderAliYunOss(MultipartFile headerImage, Model model) {
+        // 空值判断
+        if (headerImage == null) {
+            model.addAttribute("error", "您还没有选择图片!");
+            return "/site/setting";
+        }
+
+        // 获取图片文件名
+        String filename = headerImage.getOriginalFilename();
+        // 获取图片后缀
+        String suffix = filename.substring(filename.lastIndexOf("."));
+        // 判断后缀合法性
+        if (StringUtils.isBlank(suffix)) {
+            model.addAttribute("error", "文件的格式不正确!");
+            return "/site/setting";
+        }
+
+        // 生成唯一文件名
+        filename = CommunityUtil.generateUUID() + suffix;
+
+        // 创建OSS客户端
+        OSS ossClient = new OSSClientBuilder().build(endpoint, accessKeyId, accessKeySecret);
+
+        try {
+            // 获取文件输入流
+            InputStream in = headerImage.getInputStream();
+            // 上传文件到指定的bucket
+            ossClient.putObject(headerBucket, filename, in);
+        } catch (IOException e) {
+            throw new RuntimeException("头像上传失败：" + e.getMessage());
+        } finally {
+            // 关闭Oss客户端
+            if (ossClient != null) {
+                ossClient.shutdown();
+            }
+        }
+
+        // 更新当前用户的头像的路径(web访问路径)
+        User user = hostHolder.getUser();
+        String headerUrl = "https://" + headerBucket + "." + endpoint + "/" + filename;
+        userService.updateHeader(user.getId(), headerUrl);
+        return "redirect:/index";
+    }
+
+
+    /**
+     * 上传头像到本地服务器（废弃）
+     *
+     * @param headerImage
+     * @param model
+     * @return
+     */
+    //@LoginRequired
+    //@RequestMapping(path = "/upload", method = RequestMethod.POST)
     public String uploadHeader(MultipartFile headerImage, Model model) {
         if (headerImage == null) {
             model.addAttribute("error", "您还没有选择图片!");
@@ -117,34 +195,36 @@ public class UserController implements CommunityConstant {
         }
     }
 
-    // 个人主页
-    @RequestMapping(path = "/profile/{userId}", method = RequestMethod.GET)
+    /**
+     * 用户主页
+     *
+     * @param userId 用户id
+     * @param model
+     * @return
+     */
+    @GetMapping(path = "/profile/{userId}")
     public String getProfilePage(@PathVariable("userId") int userId, Model model) {
         User user = userService.findUserById(userId);
         if (user == null) {
             throw new RuntimeException("该用户不存在!");
         }
-
         // 用户
         model.addAttribute("user", user);
         // 点赞数量
         int likeCount = likeService.findUserLikeCount(userId);
         model.addAttribute("likeCount", likeCount);
-
         // 关注数量
         long followeeCount = followService.findFolloweeCount(userId, ENTITY_TYPE_USER);
         model.addAttribute("followeeCount", followeeCount);
         // 粉丝数量
         long followerCount = followService.findFollowerCount(ENTITY_TYPE_USER, userId);
         model.addAttribute("followerCount", followerCount);
-        // 是否已关注
+        // 是否已关注（因为用户会查看别人的主页）
         boolean hasFollowed = false;
         if (hostHolder.getUser() != null) {
             hasFollowed = followService.hasFollowed(hostHolder.getUser().getId(), ENTITY_TYPE_USER, userId);
         }
         model.addAttribute("hasFollowed", hasFollowed);
-
         return "/site/profile";
     }
-
 }

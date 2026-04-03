@@ -12,9 +12,12 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 
+/**
+ * @author 19599
+ * @Description: 全局异常处理器
+ */
 @ControllerAdvice(annotations = Controller.class)
 public class ExceptionAdvice {
-
     private static final Logger logger = LoggerFactory.getLogger(ExceptionAdvice.class);
 
     @ExceptionHandler({Exception.class})
@@ -23,7 +26,6 @@ public class ExceptionAdvice {
         for (StackTraceElement element : e.getStackTrace()) {
             logger.error(element.toString());
         }
-
         String xRequestedWith = request.getHeader("x-requested-with");
         if ("XMLHttpRequest".equals(xRequestedWith)) {
             response.setContentType("application/plain;charset=utf-8");
@@ -33,5 +35,4 @@ public class ExceptionAdvice {
             response.sendRedirect(request.getContextPath() + "/error");
         }
     }
-
 }

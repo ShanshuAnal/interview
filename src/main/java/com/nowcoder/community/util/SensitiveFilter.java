@@ -14,6 +14,9 @@ import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * @author 19599
+ */
 @Component
 public class SensitiveFilter {
 
@@ -23,7 +26,7 @@ public class SensitiveFilter {
     private static final String REPLACEMENT = "***";
 
     // 根节点
-    private TrieNode rootNode = new TrieNode();
+    private final TrieNode rootNode = new TrieNode();
 
     @PostConstruct
     public void init() {
@@ -59,7 +62,7 @@ public class SensitiveFilter {
 
             // 设置结束标识
             if (i == keyword.length() - 1) {
-                tempNode.setKeywordEnd(true);
+                tempNode.setKeywordEnd();
             }
         }
     }
@@ -74,7 +77,6 @@ public class SensitiveFilter {
         if (StringUtils.isBlank(text)) {
             return null;
         }
-
         // 指针1
         TrieNode tempNode = rootNode;
         // 指针2
@@ -111,6 +113,7 @@ public class SensitiveFilter {
             } else if (tempNode.isKeywordEnd()) {
                 // 发现敏感词,将begin~position字符串替换掉
                 sb.append(REPLACEMENT);
+                
                 // 进入下一个位置
                 begin = ++position;
                 // 重新指向根节点
@@ -134,20 +137,20 @@ public class SensitiveFilter {
     }
 
     // 前缀树
-    private class TrieNode {
+    private static class TrieNode {
 
         // 关键词结束标识
         private boolean isKeywordEnd = false;
 
         // 子节点(key是下级字符,value是下级节点)
-        private Map<Character, TrieNode> subNodes = new HashMap<>();
+        private final Map<Character, TrieNode> subNodes = new HashMap<>();
 
         public boolean isKeywordEnd() {
             return isKeywordEnd;
         }
 
-        public void setKeywordEnd(boolean keywordEnd) {
-            isKeywordEnd = keywordEnd;
+        public void setKeywordEnd() {
+            isKeywordEnd = true;
         }
 
         // 添加子节点

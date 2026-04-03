@@ -18,14 +18,14 @@ public interface CommunityConstant {
     int ACTIVATION_FAILURE = 2;
 
     /**
-     * 默认状态的登录凭证的超时时间
+     * 默认状态的登录凭证的超时时间：12小时
      */
     int DEFAULT_EXPIRED_SECONDS = 3600 * 12;
 
     /**
-     * 记住状态的登录凭证超时时间
+     * 记住状态的登录凭证超时时间：10天
      */
-    int REMEMBER_EXPIRED_SECONDS = 3600 * 24 * 100;
+    int REMEMBER_EXPIRED_SECONDS = 3600 * 24 * 10;
 
     /**
      * 实体类型: 帖子
@@ -58,8 +58,37 @@ public interface CommunityConstant {
     String TOPIC_FOLLOW = "follow";
 
     /**
+     * 主题：发帖
+     */
+    String TOPIC_PUBLISH = "publish";
+
+    /**
+     * 主题：删帖
+     */
+    String TOPIC_DELETE = "delete";
+
+    /**
+     * 主题：分享
+     */
+    String TOPIC_SHARE = "share";
+
+    /**
      * 系统用户ID
      */
     int SYSTEM_USER_ID = 1;
 
+    /**
+     * 权限：普通用户
+     */
+    String AUTHORITY_USER = "user";
+
+    /**
+     * 权限：管理员
+     */
+    String AUTHORITY_ADIMN = "admin";
+
+    /**
+     * 权限：版主
+     */
+    String AUTHORITY_MODERATOR = "moderator";
 }

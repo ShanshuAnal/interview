@@ -15,15 +15,22 @@ import org.thymeleaf.context.Context;
 @ContextConfiguration(classes = CommunityApplication.class)
 public class MailTests {
 
+    /**
+     * 邮件发送工具类
+     */
     @Autowired
     private MailClient mailClient;
 
+    /**
+     * Thymeleaf模板引擎的实例
+     * 用于生成动态HTML内容
+     */
     @Autowired
     private TemplateEngine templateEngine;
 
     @Test
     public void testTextMail() {
-        mailClient.sendMail("lihonghe@nowcoder.com", "TEST", "Welcome.");
+        mailClient.sendMail("1959971574@qq.com", "TEST", "Welcome.");
     }
 
     @Test
@@ -34,7 +41,6 @@ public class MailTests {
         String content = templateEngine.process("/mail/demo", context);
         System.out.println(content);
 
-        mailClient.sendMail("lihonghe@nowcoder.com", "HTML", content);
+        mailClient.sendMail("1959971574@qq.com", "HTML", content);
     }
-
 }

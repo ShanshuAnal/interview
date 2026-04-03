@@ -2,14 +2,41 @@ package com.nowcoder.community.entity;
 
 import java.util.Date;
 
+/**
+ * @author 19599
+ * 消息类：
+ * 分为两大类：系统通知、用户私信
+ * 系统通知需要借助Kafka消息队列，相当于系统向目标用户发的私信，会话id是通知的主题（评论、点赞、关注）
+ * 用户私信就直接将私信消息对象插入数据库中就行了
+ */
 public class Message {
-
     private int id;
+    /**
+     * 发送用户id
+     */
     private int fromId;
+    /**
+     * 接受用户id
+     */
     private int toId;
+    /**
+     * 会话id
+     */
     private String conversationId;
+    /**
+     * 聊天内容
+     */
     private String content;
+    /**
+     * 消息状态
+     * 0 未读
+     * 1 已读
+     * 2 删除
+     */
     private int status;
+    /**
+     * 创建时间
+     */
     private Date createTime;
 
     public int getId() {

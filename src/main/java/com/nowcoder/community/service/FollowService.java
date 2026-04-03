@@ -21,18 +21,32 @@ public class FollowService implements CommunityConstant {
     @Autowired
     private UserService userService;
 
+    /**
+     * 关注
+     *
+     * @param userId     当前用户id
+     * @param entityType 关注实体类型（用户）
+     * @param entityId   关注用户id
+     */
     public void follow(int userId, int entityType, int entityId) {
         redisTemplate.execute(new SessionCallback() {
             @Override
             public Object execute(RedisOperations operations) throws DataAccessException {
+                // 当前用户的关注列表key                     关注实体Id    关注时间戳
+                // followee:{userId}:{entityType} -> zset(entityId, timestamp)
                 String followeeKey = RedisKeyUtil.getFolloweeKey(userId, entityType);
+
+                // 用户的粉丝key                              粉丝id    关注时间戳
+                // follower:{entityType}:{entityId} -> zset(userId, timestamp)
                 String followerKey = RedisKeyUtil.getFollowerKey(entityType, entityId);
 
+                // 开启事务
                 operations.multi();
 
                 operations.opsForZSet().add(followeeKey, entityId, System.currentTimeMillis());
                 operations.opsForZSet().add(followerKey, userId, System.currentTimeMillis());
 
+                // 提交事务
                 return operations.exec();
             }
         });
@@ -55,13 +69,13 @@ public class FollowService implements CommunityConstant {
         });
     }
 
-    // 查询关注的实体的数量
+    // 查询某用户的关注数
     public long findFolloweeCount(int userId, int entityType) {
         String followeeKey = RedisKeyUtil.getFolloweeKey(userId, entityType);
         return redisTemplate.opsForZSet().zCard(followeeKey);
     }
 
-    // 查询实体的粉丝的数量
+    // 查询某用户的粉丝数
     public long findFollowerCount(int entityType, int entityId) {
         String followerKey = RedisKeyUtil.getFollowerKey(entityType, entityId);
         return redisTemplate.opsForZSet().zCard(followerKey);

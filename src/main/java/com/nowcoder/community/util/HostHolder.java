@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * 持有用户信息,用于代替session对象.
+ * @author 19599
  */
 @Component
 public class HostHolder {
@@ -22,5 +23,4 @@ public class HostHolder {
     public void clear() {
         users.remove();
     }
-
 }

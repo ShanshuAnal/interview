@@ -2,6 +2,7 @@ package com.nowcoder.community.service;
 
 import com.nowcoder.community.dao.CommentMapper;
 import com.nowcoder.community.entity.Comment;
+import com.nowcoder.community.entity.DiscussPost;
 import com.nowcoder.community.util.CommunityConstant;
 import com.nowcoder.community.util.SensitiveFilter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,10 +26,26 @@ public class CommentService implements CommunityConstant {
     @Autowired
     private DiscussPostService discussPostService;
 
+    /**
+     * 可能是帖子的评论，也可能是评论的评论
+     *
+     * @param entityType 评论的实体类型
+     * @param entityId   实体id
+     * @param offset     起始行
+     * @param limit      最大函数
+     * @return 评论集合
+     */
     public List<Comment> findCommentsByEntity(int entityType, int entityId, int offset, int limit) {
         return commentMapper.selectCommentsByEntity(entityType, entityId, offset, limit);
     }
 
+    /**
+     * 评论数
+     *
+     * @param entityType
+     * @param entityId
+     * @return
+     */
     public int findCommentCount(int entityType, int entityId) {
         return commentMapper.selectCountByEntity(entityType, entityId);
     }
@@ -46,10 +63,10 @@ public class CommentService implements CommunityConstant {
 
         // 更新帖子评论数量
         if (comment.getEntityType() == ENTITY_TYPE_POST) {
+            DiscussPost discussPost = discussPostService.findDiscussPostById(comment.getEntityId());
             int count = commentMapper.selectCountByEntity(comment.getEntityType(), comment.getEntityId());
             discussPostService.updateCommentCount(comment.getEntityId(), count);
         }
-
         return rows;
     }
 
