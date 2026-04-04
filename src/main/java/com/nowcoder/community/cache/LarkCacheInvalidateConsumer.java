@@ -45,13 +45,10 @@ public class LarkCacheInvalidateConsumer implements RocketMQListener<String> {
             // 消息格式错误，直接 ACK 不重试，避免死循环
             return;
         }
-
         String cacheKey = message.getCacheKey();
         Integer storeCode = message.getStoreCode();
-        log.info("[LarkCacheInvalidateConsumer] 开始消费，cacheKey={}", cacheKey);
 
-        // DEL Redis
-        // 抛出异常则 RocketMQ 自动 NACK，触发重试
+        // DEL Redis，抛出异常则 RocketMQ 自动 NACK，触发重试
         redisTemplate.delete(cacheKey);
         log.info("[LarkCacheInvalidateConsumer] DEL Redis 成功，cacheKey={}", cacheKey);
 
@@ -64,7 +61,6 @@ public class LarkCacheInvalidateConsumer implements RocketMQListener<String> {
             log.warn("[LarkCacheInvalidateConsumer] Pub/Sub 广播失败，storeCode={}，依赖 TTL 兜底，error={}",
                     storeCode, e.getMessage());
         }
-
         // 正常返回 = ACK
         log.info("[LarkCacheInvalidateConsumer] 消费成功，cacheKey={}", cacheKey);
     }

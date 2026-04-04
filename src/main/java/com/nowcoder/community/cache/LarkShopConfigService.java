@@ -8,6 +8,10 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
+
+import java.util.concurrent.CompletableFuture;
 
 @Service
 @Slf4j
@@ -37,10 +41,6 @@ public class LarkShopConfigService {
     @Autowired
     private RocketMQTemplate rocketMQTemplate;
 
-    // ─────────────────────────────────────────────
-    // 公共方法
-    // ─────────────────────────────────────────────
-
     /**
      * 更新店铺配置
      * 写链路：先更新 DB，再删 Redis，再广播失效本地缓存
@@ -51,8 +51,14 @@ public class LarkShopConfigService {
     public void updateShopConfig(LarkShopConfig config) {
         // ① 更新 DB（事务内）
         larkShopConfigMapper.updateById(config);
-        // 事务提交后执行缓存操作（避免事务未提交时缓存已删，读请求回源读到旧数据）
-        // Spring @Transactional 默认提交后才返回，下面的代码在提交后执行
+        // ② 注册事务同步回调：确保只有在数据库真正 COMMIT 成功后才触发缓存清理
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                // 提交成功后，异步执行缓存失效逻辑，不阻塞主业务逻辑
+                CompletableFuture.runAsync(() -> afterUpdateShopConfig(config));
+            }
+        });
     }
 
     /**
@@ -62,10 +68,8 @@ public class LarkShopConfigService {
      */
     public void afterUpdateShopConfig(LarkShopConfig config) {
         String cacheKey = CACHE_KEY_PREFIX + config.getStoreCode();
-
         // ② DEL Redis
         boolean delSuccess = deleteRedisKey(cacheKey);
-
         if (delSuccess) {
             // ③ DEL 成功，Pub/Sub 广播通知各实例失效本地 Caffeine
             publishInvalidate(config.getStoreCode());

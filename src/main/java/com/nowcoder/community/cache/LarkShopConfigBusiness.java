@@ -8,7 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.util.*;
@@ -17,7 +17,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * @author 19599
  */
-@Component
+@Service
 @Slf4j
 public class LarkShopConfigBusiness {
     /**
@@ -60,18 +60,6 @@ public class LarkShopConfigBusiness {
      */
     private static final int MAX_SPIN_TIMES = 3;
 
-    /**
-     * 高敏感字段不进本地 Caffeine，只走 Redis
-     * 这些字段一旦变更要求快速生效，不能容忍 30 秒本地缓存脏数据
-     */
-    private static final Set<String> HIGH_SENSITIVE_FIELDS = new HashSet<>(Arrays.asList(
-            "isOnline", "apiKey", "secret", "popCollectMethod", "popRefundMethod"
-    ));
-
-    // ─────────────────────────────────────────────
-    // 依赖
-    // ─────────────────────────────────────────────
-
     @Autowired
     private StringRedisTemplate redisTemplate;
 
@@ -81,15 +69,12 @@ public class LarkShopConfigBusiness {
     /**
      * 本地二级缓存 Caffeine
      * TTL = 30秒，Pub/Sub 广播失效 + TTL 兜底双重保障
-     * 注意：高敏感字段对应的 storeCode 不存入此缓存（见 shouldUseLocalCache 方法说明）
-     * 实际项目中如需按字段粒度控制，可拆分为两个 key 体系或存储时过滤敏感字段
      */
     private Cache<Integer, LarkShopConfig> localCache;
 
     /**
      * 限流器：Guava RateLimiter，令牌桶算法
-     * 每秒最多放行 500 个请求进入缓存查询链路
-     * 超出限流的请求直接返回降级默认值，保护 DB
+     * 每秒最多放行 500 个请求进入缓存查询链路，超出限流的请求直接返回降级默认值，保护 DB
      */
     private RateLimiter rateLimiter;
 
@@ -125,13 +110,8 @@ public class LarkShopConfigBusiness {
         this.releaseLockScript.setResultType(Long.class);
     }
 
-    // ─────────────────────────────────────────────
-    // 公共方法
-    // ─────────────────────────────────────────────
-
     /**
      * 获取店铺配置（二级缓存 + 防击穿 + 限流降级）
-     * <p>
      * 查询顺序：本地 Caffeine → Redis → DB
      *
      * @param storeCode 店铺编码
