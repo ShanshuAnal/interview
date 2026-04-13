@@ -88,7 +88,6 @@ public class LarkShopConfigService {
     private boolean deleteRedisKey(String cacheKey) {
         try {
             redisTemplate.delete(cacheKey);
-            log.info("[LarkShopConfig] DEL Redis 成功，cacheKey={}", cacheKey);
             return true;
         } catch (Exception e) {
             log.error("[LarkShopConfig] DEL Redis 异常，cacheKey={}，error={}", cacheKey, e.getMessage(), e);
@@ -130,6 +129,11 @@ public class LarkShopConfigService {
             log.error("[LarkShopConfig] MQ 投递失败，cacheKey={}，需人工介入，error={}",
                     cacheKey, e.getMessage(), e);
             // 实际项目接入告警平台（钉钉/Sentry等）
+            sendDingdingTalk();
         }
+    }
+
+    private void sendDingdingTalk() {
+
     }
 }

@@ -17,6 +17,8 @@ import org.springframework.stereotype.Component;
  * 重试策略：由 RocketMQ Broker 控制，消费失败 NACK 后按退避策略重投
  * 默认重试 16 次（10s→30s→1min→2min→3min→4min→5min→6min→7min→8min→9min→10min→20min→30min→1h→2h）
  * 超出重试次数后进入死信队列（%DLQ%consumer-group），触发告警人工介入
+ *
+ * @author 19599
  */
 @Component
 @Slf4j

@@ -75,20 +75,20 @@ public class DiscussPostCacheService {
 
 
         // 2. 查询Redis缓存
-        String redisKey = RedisKeyUtil.getPostDetailKey(postId);
-        post = (DiscussPost) redisTemplate.opsForValue().get(redisKey);
-        if (post != null) {
-            logger.debug("从Redis缓存获取帖子详情: {}", postId);
-            postDetailCache.put(postId, post);
-            return post;
-        }
+        //String redisKey = RedisKeyUtil.getPostDetailKey(postId);
+        //post = (DiscussPost) redisTemplate.opsForValue().get(redisKey);
+        //if (post != null) {
+        //    logger.debug("从Redis缓存获取帖子详情: {}", postId);
+        //    postDetailCache.put(postId, post);
+        //    return post;
+        //}
 
         // 3. 查询数据库
         logger.debug("从数据库获取帖子详情: {}", postId);
         post = discussPostMapper.selectDiscussPostById(postId);
         if (post != null) {
-            redisTemplate.opsForValue().set(redisKey, post, 
-                    RedisKeyUtil.POST_DETAIL_CACHE_EXPIRE_SECONDS, TimeUnit.SECONDS);
+            //redisTemplate.opsForValue().set(redisKey, post,
+            //        RedisKeyUtil.POST_DETAIL_CACHE_EXPIRE_SECONDS, TimeUnit.SECONDS);
             postDetailCache.put(postId, post);
         }
 
@@ -106,8 +106,8 @@ public class DiscussPostCacheService {
         }
 
         // 2. 查询Redis缓存
-        String redisKey = RedisKeyUtil.getPostListKey(userId, orderMode, offset, limit);
-        posts = (List<DiscussPost>) redisTemplate.opsForValue().get(redisKey);
+        //String redisKey = RedisKeyUtil.getPostListKey(userId, orderMode, offset, limit);
+        //posts = (List<DiscussPost>) redisTemplate.opsForValue().get(redisKey);
         if (posts != null) {
             logger.debug("从Redis缓存获取帖子列表: {}", cacheKey);
             postListCache.put(cacheKey, posts);
@@ -118,8 +118,8 @@ public class DiscussPostCacheService {
         logger.debug("从数据库获取帖子列表: {}", cacheKey);
         posts = discussPostMapper.selectDiscussPosts(userId, offset, limit, orderMode);
         if (posts != null && !posts.isEmpty()) {
-            redisTemplate.opsForValue().set(redisKey, posts, 
-                    RedisKeyUtil.POST_LIST_CACHE_EXPIRE_SECONDS, TimeUnit.SECONDS);
+            //redisTemplate.opsForValue().set(redisKey, posts,
+            //        RedisKeyUtil.POST_LIST_CACHE_EXPIRE_SECONDS, TimeUnit.SECONDS);
             postListCache.put(cacheKey, posts);
         }
 
@@ -135,8 +135,8 @@ public class DiscussPostCacheService {
         }
 
         // 2. 查询Redis缓存
-        String redisKey = RedisKeyUtil.getPostCountKey(userId);
-        count = (Integer) redisTemplate.opsForValue().get(redisKey);
+        //String redisKey = RedisKeyUtil.getPostCountKey(userId);
+        //count = (Integer) redisTemplate.opsForValue().get(redisKey);
         if (count != null) {
             logger.debug("从Redis缓存获取帖子总数: {}", userId);
             postCountCache.put(userId, count);
@@ -146,8 +146,8 @@ public class DiscussPostCacheService {
         // 3. 查询数据库
         logger.debug("从数据库获取帖子总数: {}", userId);
         count = discussPostMapper.selectDiscussPostRows(userId);
-        redisTemplate.opsForValue().set(redisKey, count, 
-                RedisKeyUtil.POST_CACHE_EXPIRE_SECONDS, TimeUnit.SECONDS);
+        //redisTemplate.opsForValue().set(redisKey, count,
+        //        RedisKeyUtil.POST_CACHE_EXPIRE_SECONDS, TimeUnit.SECONDS);
         postCountCache.put(userId, count);
 
         return count;
@@ -155,8 +155,8 @@ public class DiscussPostCacheService {
 
     public void evictPostDetail(int postId) {
         postDetailCache.invalidate(postId);
-        String redisKey = RedisKeyUtil.getPostDetailKey(postId);
-        redisTemplate.delete(redisKey);
+        //String redisKey = RedisKeyUtil.getPostDetailKey(postId);
+        //redisTemplate.delete(redisKey);
         logger.debug("清除帖子详情缓存: {}", postId);
     }
 
@@ -168,8 +168,8 @@ public class DiscussPostCacheService {
 
     public void evictPostCount(int userId) {
         postCountCache.invalidate(userId);
-        String redisKey = RedisKeyUtil.getPostCountKey(userId);
-        redisTemplate.delete(redisKey);
+        //String redisKey = RedisKeyUtil.getPostCountKey(userId);
+        //redisTemplate.delete(redisKey);
         logger.debug("清除帖子总数缓存: {}", userId);
     }
 } 

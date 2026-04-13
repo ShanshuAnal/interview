@@ -9,6 +9,11 @@ import org.springframework.data.redis.listener.PatternTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
 
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+
 /**
  * Redis Pub/Sub 订阅配置
  * <p>
@@ -18,6 +23,8 @@ import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
  * 注意：Pub/Sub 是 Fire-and-Forget，不保证 100% 送达
  * 实例重启期间、网络闪断时可能漏收消息
  * 漏收的实例依赖本地 Caffeine TTL（30秒）兜底
+ *
+ * @author 19599
  */
 @Configuration
 @Slf4j
@@ -34,16 +41,10 @@ public class LarkCacheSubscriber {
     @Bean
     public RedisMessageListenerContainer redisMessageListenerContainer(
             RedisConnectionFactory connectionFactory) {
-
         RedisMessageListenerContainer container = new RedisMessageListenerContainer();
         container.setConnectionFactory(connectionFactory);
-
         // 注册监听器，绑定 channel
-        container.addMessageListener(
-                messageListenerAdapter(),
-                new PatternTopic(PUBSUB_CHANNEL)
-        );
-
+        container.addMessageListener(messageListenerAdapter(), new PatternTopic(PUBSUB_CHANNEL));
         return container;
     }
 
@@ -75,5 +76,9 @@ public class LarkCacheSubscriber {
                 log.error("[LarkCacheSubscriber] 广播消息格式错误，message={}，error={}", message, e.getMessage());
             }
         }
+    }
+
+    static class Node {
+
     }
 }
