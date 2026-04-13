@@ -1,8 +1,4 @@
 package com.nowcoder.community.leetcode;
-
-import java.nio.channels.Channel;
-import java.util.concurrent.ThreadPoolExecutor;
-
 /**
  * @Author: 19599
  * @Date: 2026/4/6 0:49
@@ -28,7 +24,6 @@ public class CanConstruct {
             sb.append(ch);
             if (sb.length() >= m) {
                 boolean match = true;
-                new Thread()
                 for (int j = 0; j < m; j++) {
                     if (sb.charAt(sb.length() -m + j) != source.charAt(j)) {
                         match = false;
@@ -40,9 +35,6 @@ public class CanConstruct {
                 }
             }
         }
-
-        new Channel()
-
         return sb.length() == 0;
     }
 }
